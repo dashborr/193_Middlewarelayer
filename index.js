@@ -119,3 +119,95 @@ app.get("/", async (req, res, next) => {
         next(err);
     }
 });
+
+// POST /biodata
+app.post("/biodata", validatebody(biodataSchema), async (req, res, next) => {
+    try {
+        const { nama, nim, kelas } = req.body;
+        const result = await pool.query(
+            `INSERT INTO biodata (nama, nim, kelas)
+             VALUES ($1, $2, $3)
+             RETURNING *`,
+            [nama, nim, kelas]
+        );
+        return successResponse(res, "Data berhasil ditambahkan", result.rows[0], 201);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// PUT /biodata/:id
+app.put(
+    "/biodata/:id",
+    validateparams(idSchema),
+    validatebody(biodataSchema),
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const { nama, nim, kelas } = req.body;
+
+            const result = await pool.query(
+                `UPDATE biodata
+                 SET nama = $1, nim = $2, kelas = $3
+                 WHERE id = $4
+                 RETURNING *`,
+                [nama, nim, kelas, id]
+            );
+
+            if (result.rowCount === 0) {
+                return errorResponse(res, "Data tidak ditemukan", 404);
+            }
+
+            return successResponse(res, "Data berhasil diupdate", result.rows[0]);
+        } catch (err) {
+            next(err);
+        }
+    }
+);
+
+// DELETE /biodata/:id
+app.delete(
+    "/biodata/:id",
+    validateparams(idSchema),
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+
+            const result = await pool.query(
+                "DELETE FROM biodata WHERE id = $1 RETURNING *",
+                [id]
+            );
+            if (result.rowCount === 0) {
+                return errorResponse(res, "Data tidak ditemukan", 404);
+            }
+            return successResponse(res, "Data berhasil dihapus", result.rows[0]);
+        } catch (err) {
+            next(err);
+        }
+    }
+);
+
+// 404 handler
+app.use((req, res) => {
+    return errorResponse(res, "Endpoint tidak ditemukan", 404);
+});
+
+// Error handler global
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    return errorResponse(
+        res,
+        "Terjadi kesalahan pada server",
+        500,
+        process.env.NODE_ENV === "development" ? err.message : null
+    );
+});
+
+app.listen(port, () => {
+    console.log(`App running on port ${port}`);
+});

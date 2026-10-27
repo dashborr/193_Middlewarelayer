@@ -51,3 +51,14 @@ function errorResponse(res, message, status = 500, details = null) {
         error: details,
     });
 }
+
+// Joi Validation schema
+const biodataSchema = Joi.object({
+    nama: Joi.string().trim().min(2).max(30).required(),
+    nim: Joi.string().trim().min(5).max(20).required(),
+    kelas: Joi.string().trim().min(1).max(10).required(),
+});
+
+const idSchema = Joi.object({
+    id: Joi.number().integer().positive().required(),
+});

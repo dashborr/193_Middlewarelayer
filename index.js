@@ -109,3 +109,13 @@ function validateparams(schema) {
         next();
     };
 }
+
+// GET /
+app.get("/", async (req, res, next) => {
+    try {
+        const result = await pool.query("SELECT * FROM biodata ORDER BY id ASC");
+        return successResponse(res, "Data berhasil diambil", result.rows);
+    } catch (err) {
+        next(err);
+    }
+});

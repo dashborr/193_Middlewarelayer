@@ -4,3 +4,4 @@ import pg from "pg";
 import Joi from "joi";
 
 const app = express();
+const port = process.env.PORT
